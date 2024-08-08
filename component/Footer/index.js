@@ -6,12 +6,12 @@ export default function Footers() {
   const borderColor = useColorModeValue("gray.400", "blue.500");
 
   return (
-    <Box bg={bg} color={color} position="relative">
+    <Box bgGradient="linear(to-r, teal.500, green.500)" color={color} position="relative">
       <Box
         borderTopWidth={1}
         borderStyle={"solid"}
         borderColor={borderColor}
-        color={useColorModeValue("gray.900", "blue.500")}
+        color={useColorModeValue("white", "white")}
       >
         <Container maxW={"6xl"} py={4}>
           <Text align="center">
