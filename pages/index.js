@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { Box } from "@chakra-ui/react";
+import { Box, useToast } from "@chakra-ui/react";
 import { Navbar, Landpage, Footer } from "../component";
 import styles from '../styles/Home.module.css';
 import Marketplace from "./Marketplace";
@@ -10,6 +10,7 @@ import Dataplace from "./Dataplace";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState(0);
+  const toast = useToast();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -36,7 +37,7 @@ export default function Home() {
         <link rel="icon" href="/icon.png" />
       </Head>
 
-      <Navbar setActiveTab={setActiveTab} />
+      <Navbar setActiveTab={setActiveTab} activeTab={activeTab} />
 
       <Box as="main" className={styles.main}>
         {renderContent()}

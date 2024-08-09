@@ -6,7 +6,7 @@ export default function Footers() {
   const borderColor = useColorModeValue("gray.400", "blue.500");
 
   return (
-    <Box bgGradient="linear(to-r, teal.500, green.500)" color={color} position="relative">
+    <Box bgGradient="linear(to-r, teal.500, lightBlue.500)" color={color} position="relative">
       <Box
         borderTopWidth={1}
         borderStyle={"solid"}

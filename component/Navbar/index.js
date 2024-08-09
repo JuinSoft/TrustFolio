@@ -22,7 +22,7 @@ import { WalletModel } from "..";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
 
-export default function Navbar({ setActiveTab }) {
+export default function Navbar({ setActiveTab, activeTab }) {
   const bg = useColorModeValue("white", "gray.800");
   const mobileNav = useDisclosure();
   const { toggleColorMode: toggleMode } = useColorMode();
@@ -32,7 +32,7 @@ export default function Navbar({ setActiveTab }) {
 
   return (
     <>
-      <Box bgGradient="linear(to-r, teal.500, green.500)" shadow="2xl" borderRadius="3xl" h="100vh" w="250px" position="fixed">
+      <Box bgGradient="linear(to-r, teal.500, lightBlue.500)" shadow="2xl" borderRadius="3xl" h="100vh" w="250px" position="fixed">
         <chakra.header
           bg={bg}
           borderColor={useColorModeValue("gray.400", "blue.500")}
@@ -119,9 +119,11 @@ export default function Navbar({ setActiveTab }) {
           </Tabs>
         </Flex>
       </Box>
-      <Box position="fixed" top={4} right={4} zIndex={1}>
-        <WalletModel />
-      </Box>
+      {activeTab == 0 && (
+        <Box position="fixed" top={4} right={4} zIndex={1}>
+          <WalletModel />
+        </Box>
+      )}
     </>
   );
 }
