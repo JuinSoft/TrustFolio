@@ -8,7 +8,7 @@
   flex: 1; /* Allow main content to grow and push footer down */
   display: flex;
   flex-direction: column;
-  margin-left: 10vw;
+  margin-left: 15vw;
 }
 
 .footer {

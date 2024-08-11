@@ -3,253 +3,177 @@ pragma solidity ^0.8.0;
 
 contract TrustFolio {
     struct Requirement {
-        string title;
-        string description;
-        string user;
-        string[] tags;
-        string additionalInfo;
-        string datePosted;
-        uint256 amount;
-        uint256 totalResponses;
-        string status;
-        address payable poster;
-    }
-
-    struct DataItem {
         uint256 id;
-        uint256 requirementId;
+        address payable poster;
         string title;
         string description;
-        string sampleData;
-        string fullData;
-        bool isVerified;
-        address payable seller;
+        string videoUrl;
+        string thumbnailUrl;
+        string dataType;
+        string additionalData;
+        uint256 tokenOffered;
+        bool isFullfilled;
+        bool isTransferred;
     }
 
     struct Bid {
+        uint256 id;
         uint256 requirementId;
-        string title;
-        string status;
-        uint256 bidAmount;
-        string time;
-        string user;
-        string description;
         address payable bidder;
+        string title;
+        string description;
+        string sampleDataUrl;
+        string fullDataUrl;
+        bool isAccepted;
     }
 
-    Requirement[] public requirements;
-    DataItem[] public dataItems;
-    Bid[] public bids;
+    uint256 public requirementCount;
+    uint256 public bidCount;
+    mapping(uint256 => Requirement) public requirements;
+    mapping(uint256 => Bid) public bids;
+    mapping(uint256 => uint256[]) public requirementBids;
 
-    mapping(address => uint256) public earnings;
-    mapping(address => uint256) public spendings;
-
-    event RequirementPosted(uint256 requirementId, address poster);
-    event DataSubmitted(uint256 requirementId, address submitter);
-    event DataSold(uint256 dataItemId, address buyer);
-    event BidAccepted(uint256 bidId, address bidder);
-    event BidRejected(uint256 bidId, address bidder);
+    event RequirementPosted(uint256 id, address poster, string title, uint256 tokenOffered);
+    event BidPlaced(uint256 id, uint256 requirementId, address bidder);
+    event BidAccepted(uint256 bidId, uint256 requirementId);
+    event TokensTransferred(uint256 bidId, uint256 requirementId, address bidder, uint256 amount);
 
     function postRequirement(
         string memory _title,
         string memory _description,
-        string memory _user,
-        string[] memory _tags,
-        string memory _additionalInfo,
-        string memory _datePosted,
-        uint256 _amount
+        string memory _videoUrl,
+        string memory _thumbnailUrl,
+        string memory _dataType,
+        string memory _additionalData,
+        uint256 _tokenOffered
     ) public payable {
-        require(msg.value == _amount, "Amount must be paid to post requirement");
+        require(_tokenOffered > 0, "Token offered must be greater than zero");
+        require(msg.value == _tokenOffered, "Sent ETH amount must equal token offered");
 
-        requirements.push(
-            Requirement({
-                title: _title,
-                description: _description,
-                user: _user,
-                tags: _tags,
-                additionalInfo: _additionalInfo,
-                datePosted: _datePosted,
-                amount: _amount,
-                totalResponses: 0,
-                status: "open",
-                poster: payable(msg.sender)
-            })
+        requirementCount++;
+        requirements[requirementCount] = Requirement(
+            requirementCount,
+            payable(msg.sender),
+            _title,
+            _description,
+            _videoUrl,
+            _thumbnailUrl,
+            _dataType,
+            _additionalData,
+            _tokenOffered,
+            false,
+            false
         );
-
-        emit RequirementPosted(requirements.length - 1, msg.sender);
-    }
-
-    function submitData(
-        uint256 _requirementId,
-        string memory _title,
-        string memory _description,
-        string memory _sampleData,
-        string memory _fullData,
-        bool _isVerified
-    ) public {
-        uint256 dataItemId = dataItems.length;
-        dataItems.push(
-            DataItem({
-                id: dataItemId,
-                requirementId: _requirementId,
-                title: _title,
-                description: _description,
-                sampleData: _sampleData,
-                fullData: _fullData,
-                isVerified: _isVerified,
-                seller: payable(msg.sender)
-            })
-        );
-        emit DataSubmitted(_requirementId, msg.sender);
+        emit RequirementPosted(requirementCount, msg.sender, _title, _tokenOffered);
     }
 
     function placeBid(
         uint256 _requirementId,
         string memory _title,
-        uint256 _bidAmount,
-        string memory _time,
-        string memory _user,
-        string memory _description
+        string memory _description,
+        string memory _sampleDataUrl,
+        string memory _fullDataUrl
     ) public {
-        require(_requirementId < requirements.length, "Invalid requirement ID");
-
-        bids.push(
-            Bid({
-                requirementId: _requirementId,
-                title: _title,
-                status: "Pending",
-                bidAmount: _bidAmount,
-                time: _time,
-                user: _user,
-                description: _description,
-                bidder: payable(msg.sender)
-            })
+        require(_requirementId > 0 && _requirementId <= requirementCount, "Invalid requirement ID");
+        bidCount++;
+        bids[bidCount] = Bid(
+            bidCount,
+            _requirementId,
+            payable(msg.sender),
+            _title,
+            _description,
+            _sampleDataUrl,
+            _fullDataUrl,
+            false
         );
+        requirementBids[_requirementId].push(bidCount);
+        emit BidPlaced(bidCount, _requirementId, msg.sender);
     }
 
     function acceptBid(uint256 _bidId) public {
-        require(_bidId < bids.length, "Invalid bid ID");
         Bid storage bid = bids[_bidId];
-        require(bid.status == "Pending", "Bid is not pending");
+        Requirement storage requirement = requirements[bid.requirementId];
+        require(msg.sender == requirement.poster, "Only the poster can accept bids");
+        require(!requirement.isFullfilled, "Requirement already fulfilled");
+        bid.isAccepted = true;
+        requirement.isFullfilled = true;
 
-        bid.status = "Accepted";
-        bid.bidder.transfer(bid.bidAmount);
-        spendings[bid.bidder] += bid.bidAmount;
+        // Transfer ETH to the bidder
+        bid.bidder.transfer(requirement.tokenOffered);
+        requirement.isTransferred = true;
 
-        emit BidAccepted(_bidId, bid.bidder);
+        emit BidAccepted(_bidId, bid.requirementId);
+        emit TokensTransferred(_bidId, bid.requirementId, bid.bidder, requirement.tokenOffered);
     }
 
-    function rejectBid(uint256 _bidId) public {
-        require(_bidId < bids.length, "Invalid bid ID");
-        Bid storage bid = bids[_bidId];
-        require(bid.status == "Pending", "Bid is not pending");
-
-        bid.status = "Rejected";
-
-        emit BidRejected(_bidId, bid.bidder);
-    }
-
-    function getEarnings(address _user) public view returns (uint256) {
-        uint256 totalEarnings = 0;
-        for (uint256 i = 0; i < bids.length; i++) {
-            if (bids[i].bidder == _user && keccak256(abi.encodePacked(bids[i].status)) == keccak256(abi.encodePacked("Accepted"))) {
-                totalEarnings += bids[i].bidAmount;
-            }
+    function getAllRequirements() public view returns (Requirement[] memory) {
+        Requirement[] memory allRequirements = new Requirement[](requirementCount);
+        for (uint256 i = 1; i <= requirementCount; i++) {
+            allRequirements[i - 1] = requirements[i];
         }
-        return totalEarnings;
+        return allRequirements;
     }
 
-    function getSpendings(address _user) public view returns (uint256) {
-        return spendings[_user];
+    function getRequirementBids(uint256 _requirementId) public view returns (uint256[] memory) {
+        return requirementBids[_requirementId];
     }
 
-    function getUserBids(address _user) public view returns (Bid[] memory) {
-        uint256 count = 0;
-        for (uint256 i = 0; i < bids.length; i++) {
-            if (bids[i].bidder == _user) {
-                count++;
-            }
+    function getBidsForRequirement(uint256 _requirementId) public view returns (Bid[] memory) {
+        uint256[] memory bidIds = requirementBids[_requirementId];
+        Bid[] memory bidsForRequirement = new Bid[](bidIds.length);
+        for (uint256 i = 0; i < bidIds.length; i++) {
+            bidsForRequirement[i] = bids[bidIds[i]];
         }
+        return bidsForRequirement;
+    }
 
-        Bid[] memory userBids = new Bid[](count);
-        uint256 index = 0;
-        for (uint256 i = 0; i < bids.length; i++) {
-            if (bids[i].bidder == _user) {
-                userBids[index] = bids[i];
-                index++;
+    function getUserRequirements() public view returns (Requirement[] memory) {
+        uint256 totalUserRequirements = 0;
+
+        // Calculate the number of requirements by the user
+        for (uint256 i = 1; i <= requirementCount; i++) {
+            if (requirements[i].poster == msg.sender) {
+                totalUserRequirements++;
             }
         }
 
-        return userBids;
-    }
+        // Create an array to store the user's requirements
+        Requirement[] memory userRequirements = new Requirement[](totalUserRequirements);
+        uint256 counter = 0;
 
-    function getUserRequirements(address _user) public view returns (Requirement[] memory) {
-        uint256 count = 0;
-        for (uint256 i = 0; i < requirements.length; i++) {
-            if (requirements[i].poster == _user) {
-                count++;
-            }
-        }
-
-        Requirement[] memory userRequirements = new Requirement[](count);
-        uint256 index = 0;
-        for (uint256 i = 0; i < requirements.length; i++) {
-            if (requirements[i].poster == _user) {
-                userRequirements[index] = requirements[i];
-                index++;
+        // Store each requirement in the array
+        for (uint256 i = 1; i <= requirementCount; i++) {
+            if (requirements[i].poster == msg.sender) {
+                userRequirements[counter] = requirements[i];
+                counter++;
             }
         }
 
         return userRequirements;
     }
 
-    function getUserDataItems(address _user) public view returns (DataItem[] memory) {
-        uint256 count = 0;
-        for (uint256 i = 0; i < dataItems.length; i++) {
-            if (dataItems[i].seller == _user) {
-                count++;
+    function getUserBids() public view returns (Bid[] memory) {
+        uint256 totalUserBids = 0;
+
+        // Calculate the number of bids by the user
+        for (uint256 i = 1; i <= bidCount; i++) {
+            if (bids[i].bidder == msg.sender) {
+                totalUserBids++;
             }
         }
 
-        DataItem[] memory userDataItems = new DataItem[](count);
-        uint256 index = 0;
-        for (uint256 i = 0; i < dataItems.length; i++) {
-            if (dataItems[i].seller == _user) {
-                userDataItems[index] = dataItems[i];
-                index++;
+        // Create an array to store the user's bids
+        Bid[] memory userBids = new Bid[](totalUserBids);
+        uint256 counter = 0;
+
+        // Store each bid in the array
+        for (uint256 i = 1; i <= bidCount; i++) {
+            if (bids[i].bidder == msg.sender) {
+                userBids[counter] = bids[i];
+                counter++;
             }
         }
 
-        return userDataItems;
-    }
-
-    function getResponsesForRequirement(uint256 _requirementId) public view returns (DataItem[] memory) {
-        require(_requirementId < requirements.length, "Invalid requirement ID");
-
-        uint256 count = 0;
-        for (uint256 i = 0; i < dataItems.length; i++) {
-            if (dataItems[i].requirementId == _requirementId) {
-                count++;
-            }
-        }
-
-        DataItem[] memory responses = new DataItem[](count);
-        uint256 index = 0;
-        for (uint256 i = 0; i < dataItems.length; i++) {
-            if (dataItems[i].requirementId == _requirementId) {
-                responses[index] = dataItems[i];
-                index++;
-            }
-        }
-
-        return responses;
-    }
-
-    function getAllRequirements() public view returns (Requirement[] memory) {
-        return requirements;
-    }
-
-    function getAllDataItems() public view returns (DataItem[] memory) {
-        return dataItems;
+        return userBids;
     }
 }

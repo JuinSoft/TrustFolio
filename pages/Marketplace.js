@@ -1,188 +1,212 @@
-import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Container,
-  Heading,
-  VStack,
-  SimpleGrid,
-  Text,
-  Flex,
-  Tag,
-  Button,
-  Image,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Select,
-  IconButton,
-} from "@chakra-ui/react";
-import { SearchIcon, AddIcon } from "@chakra-ui/icons";
-import RequirementDetail from "./RequirementDetail";
-import PostRequirementStepper from "./PostRequirementStepper";
-
-const requirements = [
-  {
-    title: "Machine Learning Dataset Needed",
-    amount: "0.2",
-    description: "Seeking datasets for machine learning projects.",
-    user: "Research Labs Inc.",
-    icon: "",
-    video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    tags: ["Machine Learning", "Data Science", "Datasets"],
-    additionalInfo: "Looking for diverse datasets for research purposes.",
-    datePosted: "2023-10-15",
-    totalResponses: 2,
-    status: "open",
-  },
-  {
-    title: "Biomedical Research Data Request",
-    amount: "0.2",
-    description: "Requesting biomedical research data for analysis.",
-    user: "MedTech Solutions",
-    icon: "/medtech-icon.png",
-    video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    tags: ["Biomedical Research", "Data Analysis", "Research Data"],
-    additionalInfo: "Specific datasets needed for ongoing projects.",
-    datePosted: "2023-10-10",
-    totalResponses: 1,
-    status: "open",
-  },
-  {
-    title: "Environmental Data Collection Assistance",
-    amount: "0.2",
-    description: "Seeking assistance in collecting environmental data.",
-    user: "Green Earth Organization",
-    icon: "/greenearth-icon.png",
-    video: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    tags: ["Environmental Data", "Data Collection", "Assistance"],
-    additionalInfo: "Collaboration for environmental research data collection.",
-    datePosted: "2023-10-05",
-    totalResponses: 0,
-    status: "open",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Box, Text, VStack, HStack, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, useDisclosure, Image, AspectRatio, FormControl, FormLabel, Input, Textarea, useToast } from "@chakra-ui/react";
+import sendFileToIPFS from "../utils/sendFileToIPFS";
+import { useContract } from "../utils/useContract";
+import { BigNumber, ethers } from "ethers";
+import PostRequirement from "./PostRequirement";
 
 export default function Marketplace() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOption, setSortOption] = useState("date");
+  const [requirements, setRequirements] = useState([]);
   const [selectedRequirement, setSelectedRequirement] = useState(null);
-  const [isPosting, setIsPosting] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
+  const { isOpen: isPostOpen, onOpen: onPostOpen, onClose: onPostClose } = useDisclosure();
+  const [loading, setLoading] = useState(false);
+  const { contract } = useContract();
+  const toast = useToast();
 
-  const filteredRequirements = requirements
-    .filter((req) =>
-      req.title.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortOption === "date") {
-        return new Date(b.datePosted) - new Date(a.datePosted);
-      } else if (sortOption === "amount") {
-        return parseFloat(b.amount.replace(/[^0-9.-]+/g, "")) - parseFloat(a.amount.replace(/[^0-9.-]+/g, ""));
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    sampleData: "",
+    fullData: "",
+  });
+
+  useEffect(() => {
+    const fetchRequirements = async () => {
+      try {
+        const requirements = await contract.getAllRequirements();
+        const data = requirements.filter(req => !req.isFullfilled).map(req => ({
+          ...req,
+          id: BigNumber.from(req[0]).toString(),
+          tokenOffered: BigNumber.from(req[8]).toString(),
+        }));
+        setRequirements(data);
+      } catch (error) {
+        console.error("Error fetching accepted bids:", error);
       }
-      return 0;
-    });
+    };
+    fetchRequirements();
+  }, [contract]);
+
+  const handleRequirementClick = (req) => {
+    setSelectedRequirement(req);
+    onOpen();
+  };
+
+  const handleSubmitDataClick = () => {
+    onFormOpen();
+  };
+
+  const handleInputChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: value,
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    const { id, files } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: files[0],
+    }));
+  };
+
+  const handleSubmitData = async () => {
+    setLoading(true);
+    try {
+      const sampleDataUrl = await sendFileToIPFS(formData.sampleData);
+      const fullDataUrl = await sendFileToIPFS(formData.fullData);
+  
+      const tx = await contract.placeBid(
+        selectedRequirement.id,
+        formData.title,
+        formData.description,
+        sampleDataUrl,
+        fullDataUrl
+      );
+      await tx.wait();
+  
+      toast({
+        title: "Data Submitted",
+        description: "Your data has been submitted successfully.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Error submitting data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit data.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Box minHeight="100vh" bg="gray.900" color="white" py={8}>
-      <Container maxW="container.xl">
-        <VStack spacing={8} align="stretch">
-          <Heading as="h1" size="xl" textAlign="center" mb={8}>
-            Marketplace
-          </Heading>
-
-          <Button
-            leftIcon={<AddIcon />}
-            colorScheme="teal"
-            onClick={() => setIsPosting(true)}
-            position="absolute"
-            top={4}
-            right={4}
-          >
-            Add Requirement
-          </Button>
-          <Flex justify="space-between" align="center" mb={4} flexWrap="wrap">
-            <InputGroup flex="1">
-              <Input
-                placeholder="Search data..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                bg="gray.800"
-                color="white"
-              />
-              <InputRightElement>
-                <IconButton
-                  aria-label="Search database"
-                  icon={<SearchIcon />}
-                  colorScheme="teal"
-                />
-              </InputRightElement>
-            </InputGroup>
-            <Select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              maxW="200px"
-              bg="gray.800"
-              color="white"
-              flex="1"
-              ml={4}
-              mt={{ base: 4, md: 0 }}
-            >
-              <option value="date">Sort by Date</option>
-              <option value="amount">Sort by Amount</option>
-            </Select>
-          </Flex>
-          <SimpleGrid columns={{ base: 1, md: 3, lg: 3 }} spacing={8}>
-            {filteredRequirements.map((req, index) => (
-              <Box
-                key={index}
-                bg="gray.800"
-                p={6}
-                borderRadius="lg"
-                boxShadow="lg"
-                position="relative"
-              >
-                <Flex justify="space-between" align="center" mb={4}>
-                  <Heading as="h3" size="md">
-                    {req.title}
-                  </Heading>
-                  <Tag colorScheme="teal">{req.amount} ETH</Tag>
-                </Flex>
-                <Text mb={4}>{req.description}</Text>
-                <Flex justify="space-between" align="center">
-                  <Flex align="center">
-                    <Image
-                      src="https://xsgames.co/randomusers/avatar.php?g=pixel"
-                      alt={req.user}
-                      boxSize="24px"
-                      mr={2}
-                    />
-                    <Text>{req.user}</Text>
-                  </Flex>
-                  <Button
-                    colorScheme="teal"
-                    variant="outline"
-                    onClick={() => setSelectedRequirement(req)}
-                  >
-                    View
-                  </Button>
-                </Flex>
+    <Box p={4}>
+      <HStack justifyContent="space-between" mb={4}>
+        <Text fontSize="2xl" fontWeight="bold">
+          Explore Data Requirements
+        </Text>
+        <Button colorScheme="teal" onClick={onPostOpen}>
+          Post Requirement
+        </Button>
+      </HStack>
+      {requirements.length > 0 ? (
+      <VStack spacing={4}>
+        {requirements.map((req) => (
+          <Box key={req.id} p={4} borderWidth={1} borderRadius="lg" w="full" onClick={() => handleRequirementClick(req)} cursor="pointer" _hover={{ shadow: "md" }}>
+            <HStack spacing={4}>
+              <Image src={req[5]} alt={req[2]} boxSize="100px" objectFit="cover" borderRadius="md" />
+              <Box flex={1}>
+                <HStack justifyContent="space-between">
+                  <Text fontSize="xl" fontWeight="semibold">
+                    {req[2]}
+                  </Text>
+                  <Text fontWeight="bold" color="green.500">{ethers.utils.formatEther(req.tokenOffered)} ETH</Text>
+                </HStack>
+                <Text mt={2} noOfLines={2}>{req[3]}</Text>
+                <Text mt={2} fontSize="sm" color="gray.500">Data Type: {req[6]}</Text>
               </Box>
-            ))}
-          </SimpleGrid>
+            </HStack>
+          </Box>
+          ))}
         </VStack>
-      </Container>
+      ) : (
+        <Text>No requirements found.</Text>
+      )}
+
       {selectedRequirement && (
-        <RequirementDetail
-          isOpen={!!selectedRequirement}
-          onClose={() => setSelectedRequirement(null)}
-          requirement={selectedRequirement}
-        />
+        <Modal isOpen={isOpen} onClose={onClose} size="xl">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>{selectedRequirement[2]}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <AspectRatio ratio={16 / 9} mb={4}>
+                {selectedRequirement[4].startsWith("video") ? (
+                  <iframe
+                    title={selectedRequirement[2]}
+                    src={`https://player.thetavideoapi.com/video/${selectedRequirement[4]}`}
+                    allowFullScreen
+                  />
+                ) : (
+                  <iframe
+                    title={selectedRequirement[2]}
+                    src={selectedRequirement[4]}
+                    allowFullScreen
+                  />
+                )}
+              </AspectRatio>
+              <Text mb={2} fontStyle="italic" color="blue.500">{selectedRequirement[3]}</Text>
+              <Text fontStyle="bold" color="white.600">
+                {selectedRequirement[7]}
+              </Text>
+              <Text fontWeight="bold" color="green.500" mt={2}>
+                Tokens Offered: {ethers.utils.formatEther(selectedRequirement.tokenOffered)} ETH
+              </Text>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" mr={3} onClick={handleSubmitDataClick}>
+                Submit Data
+              </Button>
+              <Button variant="ghost" onClick={onClose}>Close</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       )}
-      {isPosting && (
-        <PostRequirementStepper
-          isOpen={isPosting}
-          onClose={() => setIsPosting(false)}
-        />
-      )}
+
+      <Modal isOpen={isFormOpen} onClose={onFormClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Submit Your Data</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl id="title" mb={4}>
+              <FormLabel>Title</FormLabel>
+              <Input placeholder="Enter the title of your data" value={formData.title} onChange={handleInputChange} />
+            </FormControl>
+            <FormControl id="description" mb={4}>
+              <FormLabel>Description</FormLabel>
+              <Textarea placeholder="Enter a description of your data" value={formData.description} onChange={handleInputChange} />
+            </FormControl>
+            <FormControl id="sampleData" mb={4}>
+              <FormLabel>Sample Data</FormLabel>
+              <Input type="file" onChange={handleFileChange} />
+            </FormControl>
+            <FormControl id="fullData" mb={4}>
+              <FormLabel>Full Data</FormLabel>
+              <Input type="file" onChange={handleFileChange} />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleSubmitData} isLoading={loading} isDisabled={loading}>
+              {loading ? "Uploading..." : "Submit"}
+            </Button>
+            <Button variant="ghost" onClick={onFormClose} isDisabled={loading}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <PostRequirement isOpen={isPostOpen} onClose={onPostClose} />
     </Box>
   );
 }

@@ -52,7 +52,7 @@ export const useContract = () => {
                   symbol: 'ETH',
                   decimals: 18,
                 },
-                blockExplorerUrls: ['https://sepolia-explorer.base.org'],
+                blockExplorerUrls: ['https://base-sepolia.blockscout.com'],
               },
             ],
           });
