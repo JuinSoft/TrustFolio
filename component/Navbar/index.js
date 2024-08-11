@@ -21,6 +21,7 @@ import {
 import { WalletModel } from "..";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
+import { contractAddress } from "../../utils/contract";
 
 export default function Navbar({ setActiveTab, activeTab }) {
   const bg = useColorModeValue("white", "gray.800");
@@ -87,6 +88,14 @@ export default function Navbar({ setActiveTab, activeTab }) {
               <chakra.h1 fontWeight="semibold" fontSize="2xl">
                 TrustFolio
               </chakra.h1>
+              <HStack spacing={4} display="flex" alignItems="center">
+                <Text fontSize="sm" color="green.500">
+                  Contract:
+                  <chakra.a href={`https://base-sepolia.blockscout.com/address/${contractAddress}`} color="green.500" isExternal target="_blank">
+                    {contractAddress} [Blockscout]
+                  </chakra.a>
+                </Text>
+              </HStack>
             </HStack>
           </Flex>
         </chakra.header>
@@ -113,7 +122,7 @@ export default function Navbar({ setActiveTab, activeTab }) {
                 My DataFolio
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
-                Analytics Dashboard
+                Analytics Dashboard (Incomplete)
               </Tab>
             </TabList>
           </Tabs>

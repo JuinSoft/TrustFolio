@@ -14,10 +14,6 @@ import {
   HStack,
   Flex,
 } from "@chakra-ui/react";
-import { Line, Bar, Doughnut } from "react-chartjs-2";
-import { Chart as ChartJS, registerables } from 'chart.js';
-
-ChartJS.register(...registerables);
 
 // Mock data (replace with actual data from your application)
 const userData = {
@@ -66,7 +62,7 @@ export default function Analytics() {
       <Container maxW="container.xl">
         <VStack spacing={8} align="stretch">
           <Heading as="h1" size="xl" textAlign="center" mb={8}>
-            Analytics Dashboard
+            Analytics Dashboard (TODO)
           </Heading>
 
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
@@ -95,7 +91,7 @@ export default function Analytics() {
               </StatHelpText>
             </Stat>
           </SimpleGrid>
-
+{/* 
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
             <Box bg="gray.700" p={6} borderRadius="lg" boxShadow="dark-lg">
               <Heading as="h3" size="md" mb={4}>
@@ -109,15 +105,15 @@ export default function Analytics() {
               </Heading>
               <Doughnut data={bidStatusData} options={{ responsive: true }} />
             </Box>
-          </SimpleGrid>
+          </SimpleGrid> */}
 
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
-            <Box bg="gray.700" p={6} borderRadius="lg" boxShadow="dark-lg">
+            {/* <Box bg="gray.700" p={6} borderRadius="lg" boxShadow="dark-lg">
               <Heading as="h3" size="md" mb={4}>
                 Data Type Distribution
               </Heading>
               <Bar data={dataTypeDistribution} options={{ responsive: true }} />
-            </Box>
+            </Box> */}
             <Box bg="gray.700" p={6} borderRadius="lg" boxShadow="dark-lg">
               <Heading as="h3" size="md" mb={4}>
                 Recent Activity

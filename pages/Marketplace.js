@@ -4,6 +4,7 @@ import sendFileToIPFS from "../utils/sendFileToIPFS";
 import { useContract } from "../utils/useContract";
 import { BigNumber, ethers } from "ethers";
 import PostRequirement from "./PostRequirement";
+import { Container, SimpleGrid, Heading, Divider } from "@chakra-ui/react";
 
 export default function Marketplace() {
   const [requirements, setRequirements] = useState([]);

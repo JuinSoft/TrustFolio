@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Container, Heading, Text, VStack, Button, Flex, SimpleGrid, Icon, Image, Stack } from "@chakra-ui/react";
+import { Box, Container, Heading, Text, VStack, Button, Flex, SimpleGrid, Icon, Image, HStack } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home({ setActiveTab }) {
@@ -152,8 +152,13 @@ export default function Home({ setActiveTab }) {
               transition={{ duration: 1 }}
             >
               <Heading as="h2" size="2xl" mb={4}>
-                Powered by Blockchain
+                Powered by
               </Heading>
+              <HStack spacing={5} justify="center">
+                <Image src="/base.png" boxSize="50px" alt="Icon 1" />
+                <Image src="/worldcoin.png" boxSize="50px" alt="Icon 2" />
+                <Image src="/blockscout.png" boxSize="50px" alt="Icon 3" />
+              </HStack>
               <Text fontSize="lg" mb={8} color="yellow.300">
                 Leveraging the power of blockchain to ensure transparency, security, and fair compensation.
               </Text>
