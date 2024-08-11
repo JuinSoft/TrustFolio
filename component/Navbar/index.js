@@ -107,10 +107,10 @@ export default function Navbar({ setActiveTab, activeTab }) {
                 Data Marketplace
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
-                DataPalace
+                My Bids
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
-                My Bids
+                My DataFolio
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
                 Analytics Dashboard

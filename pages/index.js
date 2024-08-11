@@ -6,7 +6,7 @@ import styles from '../styles/Home.module.css';
 import Marketplace from "./Marketplace";
 import MyBids from "./MyBids";
 import Analytics from "./Analytics";
-import Dataplace from "./Dataplace";
+import MyFolio from "./MyFolio";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState(0);
@@ -19,9 +19,9 @@ export default function Home() {
       case 1:
         return <Marketplace />;
       case 2:
-        return <Dataplace />;
-      case 3:
         return <MyBids />;
+      case 3:
+        return <MyFolio />;
       case 4:
         return <Analytics />;
       default:

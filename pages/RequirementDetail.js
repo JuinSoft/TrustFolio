@@ -29,6 +29,7 @@ export default function RequirementDetail({ isOpen, onClose, requirement }) {
     description: "",
     sampleData: null,
     fullData: null,
+    isVerified: false
   });
 
   const handleInputChange = (e) => {
