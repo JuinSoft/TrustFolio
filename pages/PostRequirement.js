@@ -81,7 +81,6 @@ export default function PostRequirement({ isOpen, onClose }) {
         { value: ethers.utils.parseEther(tokenOffered) }
       );
       await tx.wait();
-  
       toast({
         title: "Requirement Posted",
         description: "Your requirement has been posted successfully.",
