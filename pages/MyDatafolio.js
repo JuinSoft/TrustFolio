@@ -66,7 +66,7 @@ export default function MyDatafolio() {
                     {bid.status}
                   </Badge>
                 </Flex>
-                <Text mb={4}>Bid Amount: {bid.bidAmount}</Text>
+                <Text mb={4}>Tokens Offered: {bid.bidAmount}</Text>
                 <HStack spacing={2} mb={4}>
                   <Tag colorScheme="teal">{bid.time}</Tag>
                 </HStack>

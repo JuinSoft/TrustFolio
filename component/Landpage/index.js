@@ -76,7 +76,7 @@ export default function Home({ setActiveTab }) {
   useEffect(() => {
     const headlineInterval = setInterval(() => {
       setCurrentHeadlineIndex((prevIndex) => (prevIndex + 1) % headlines.length);
-    }, 3000); // Change headline every 3 seconds
+    }, 5000); // Change headline every 5 seconds
     return () => clearInterval(headlineInterval);
   }, []);
 

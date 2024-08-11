@@ -104,10 +104,10 @@ export default function Navbar({ setActiveTab, activeTab }) {
                 Home
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
-                Explore
+                Data Marketplace
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
-                DataPlace
+                DataPalace
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
                 My DataFolio
