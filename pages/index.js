@@ -4,8 +4,8 @@ import { Box, useToast } from "@chakra-ui/react";
 import { Navbar, Landpage, Footer } from "../component";
 import styles from '../styles/Home.module.css';
 import Marketplace from "./Marketplace";
-import MyDatafolio from "./MyDatafolio";
-import MyDataBids from "./MyDataBids";
+import MyBids from "./MyBids";
+import Analytics from "./Analytics";
 import Dataplace from "./Dataplace";
 
 export default function Home() {
@@ -21,9 +21,9 @@ export default function Home() {
       case 2:
         return <Dataplace />;
       case 3:
-        return <MyDatafolio />;
+        return <MyBids />;
       case 4:
-        return <MyDataBids />;
+        return <Analytics />;
       default:
         return <Landpage />;
     }

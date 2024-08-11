@@ -110,10 +110,10 @@ export default function Navbar({ setActiveTab, activeTab }) {
                 DataPalace
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
-                My DataFolio
+                My Bids
               </Tab>
               <Tab fontWeight="semibold" py={4} m={0} _focus={{ boxShadow: "none" }}>
-                My DataBids
+                Analytics Dashboard
               </Tab>
             </TabList>
           </Tabs>
