@@ -156,7 +156,6 @@ export default function Home({ setActiveTab }) {
               </Heading>
               <HStack spacing={5} justify="center">
                 <Image src="/base.png" boxSize="50px" alt="Icon 1" />
-                <Image src="/worldcoin.png" boxSize="50px" alt="Icon 2" />
                 <Image src="/blockscout.png" boxSize="50px" alt="Icon 3" />
               </HStack>
               <Text fontSize="lg" mb={8} color="yellow.300">
